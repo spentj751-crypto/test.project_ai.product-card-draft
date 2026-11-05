@@ -1,0 +1,14 @@
+# секреты
+.env
+
+# окружение и кэш
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+.DS_Store

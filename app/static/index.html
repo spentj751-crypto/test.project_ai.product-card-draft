@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Черновик карточки товара</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --panel: #ffffff; --text: #1d2330; --muted: #6a7282; --line: #e2e5ea;
+    --accent: #2f5bd3; --accent-text: #ffffff; --ok: #1f7a4d; --ok-bg: #e6f4ec;
+    --warn: #9a5b00; --warn-bg: #fdf1dc; --err: #b3261e; --err-bg: #fbe9e7; --code: #f0f2f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171c; --panel: #1c2027; --text: #e4e7ec; --muted: #9aa3b2; --line: #2d333d;
+      --accent: #7c9cf0; --accent-text: #0f1115; --ok: #6fd3a0; --ok-bg: #18342a;
+      --warn: #f0b860; --warn-bg: #3a2c14; --err: #f28b82; --err-bg: #3b1c1a; --code: #242932;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  header { padding: 20px 24px 8px; }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; padding: 16px 24px 32px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 12px 16px 24px; } header { padding: 16px 16px 4px; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+  label { display: block; font-weight: 600; font-size: 13px; margin: 12px 0 4px; }
+  label .hint { font-weight: 400; color: var(--muted); }
+  input, textarea, select { width: 100%; font: inherit; color: var(--text); background: var(--panel);
+         border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+  textarea { resize: vertical; }
+  textarea.mono, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 12px 0 4px; }
+  .tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 6px 10px; cursor: pointer;
+         color: var(--muted); font: inherit; }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+  button.primary, button.secondary { font: inherit; border-radius: 6px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--accent); }
+  button.primary { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+  button.secondary { background: transparent; color: var(--accent); }
+  button:disabled { opacity: .6; cursor: progress; }
+  .copy { font: inherit; font-size: 12px; background: none; border: 1px solid var(--line); border-radius: 5px;
+          padding: 2px 8px; cursor: pointer; color: var(--muted); }
+  .copy:hover { color: var(--text); }
+  .actions { margin-top: 16px; }
+  .hidden { display: none !important; }
+  .msg { border-radius: 8px; padding: 10px 12px; margin-top: 12px; font-size: 14px; }
+  .msg.err { background: var(--err-bg); color: var(--err); }
+  .msg.info { background: var(--code); }
+  .msg ul { margin: 6px 0 0; padding-left: 18px; }
+  .badge { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 600; }
+  .badge.ok { background: var(--ok-bg); color: var(--ok); }
+  .badge.needs_review { background: var(--warn-bg); color: var(--warn); }
+  .section { border-top: 1px solid var(--line); padding: 12px 0; }
+  .section:first-of-type { border-top: none; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .section h3 { margin: 0 0 6px; font-size: 14px; }
+  .meter { font-weight: 400; color: var(--muted); font-size: 13px; }
+  .meter.bad { color: var(--err); }
+  .seo-text { white-space: pre-wrap; margin: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { border-top: 1px solid var(--line); padding: 5px 6px; vertical-align: top; }
+  td:first-child { color: var(--muted); width: 42%; }
+  td.missing { color: var(--warn); font-style: italic; }
+  sup { color: var(--accent); }
+  ul.plain { margin: 0; padding-left: 18px; }
+  .warn-list li { color: var(--warn); }
+  pre { background: var(--code); padding: 12px; border-radius: 8px; overflow: auto; white-space: pre-wrap; margin: 0; }
+  .empty { color: var(--muted); padding: 32px 0; text-align: center; }
+  .foot { color: var(--muted); font-size: 12px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Черновик карточки товара</h1>
+  <p>Введите данные о приборе — сервис подготовит SEO-тексты, характеристики, запросы и справку для менеджера. Технические значения берутся только из введённых данных.</p>
+</header>
+<main>
+  <section class="panel">
+    <div class="row">
+      <select id="example" aria-label="Пример">
+        <option value="">Загрузить пример…</option>
+      </select>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-input-tab="form">Форма</button>
+      <button class="tab" data-input-tab="json">JSON</button>
+    </div>
+
+    <div id="input-form">
+      <label for="f-name">Название <span class="hint">— обязательно</span></label>
+      <input id="f-name" placeholder="Манометр показывающий DM 02">
+      <label for="f-manufacturer">Производитель</label>
+      <input id="f-manufacturer" placeholder="Манотомь">
+      <label for="f-specs">Характеристики <span class="hint">— по одной на строку: «Параметр: значение»</span></label>
+      <textarea id="f-specs" rows="9" class="mono" placeholder="Диапазон измерений: 0–1,6 МПа&#10;Класс точности: 1,5"></textarea>
+      <label for="f-description">Описание или фрагмент паспорта</label>
+      <textarea id="f-description" rows="6" placeholder="Прибор предназначен для измерения избыточного давления…"></textarea>
+    </div>
+
+    <div id="input-json" class="hidden">
+      <label for="f-json">JSON товара</label>
+      <textarea id="f-json" rows="22" class="mono" spellcheck="false"></textarea>
+    </div>
+
+    <div class="row actions">
+      <button class="primary" id="btn-generate">Сгенерировать</button>
+      <button class="secondary" id="btn-validate">Проверить данные</button>
+    </div>
+    <div id="input-msg"></div>
+  </section>
+
+  <section class="panel" aria-live="polite">
+    <div id="result-empty" class="empty">Здесь появится карточка товара.</div>
+    <div id="result" class="hidden">
+      <div class="row" style="justify-content: space-between">
+        <span id="status-badge" class="badge"></span>
+        <span id="meta" class="meter"></span>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-out-tab="card">Карточка</button>
+        <button class="tab" data-out-tab="md">Markdown</button>
+        <button class="tab" data-out-tab="json">JSON</button>
+      </div>
+      <div id="out-card"></div>
+      <div id="out-md" class="hidden">
+        <div class="row" style="justify-content: flex-end; margin: 8px 0"><button class="copy" data-copy-target="md-pre">Копировать</button></div>
+        <pre id="md-pre"></pre>
+      </div>
+      <div id="out-json" class="hidden">
+        <div class="row" style="justify-content: flex-end; margin: 8px 0"><button class="copy" data-copy-target="json-pre">Копировать</button></div>
+        <pre id="json-pre"></pre>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let inputMode = "form";
+const copyStore = {};
+
+// ---------- Ввод ----------
+function formToObject() {
+  const specs = {};
+  for (const line of $("f-specs").value.split("\n")) {
+    if (!line.trim()) continue;
+    const i = line.indexOf(":");
+    if (i === -1) specs[line.trim()] = "";
+    else specs[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+  }
+  return {
+    name: $("f-name").value.trim(),
+    manufacturer: $("f-manufacturer").value.trim() || null,
+    specs,
+    description: $("f-description").value.trim(),
+  };
+}
+
+function objectToForm(obj) {
+  $("f-name").value = obj.name ?? "";
+  $("f-manufacturer").value = obj.manufacturer ?? "";
+  let specs = obj.specs ?? {};
+  if (Array.isArray(specs)) specs = Object.fromEntries(specs.map((s) => [s.name, s.value]));
+  const flat = [];
+  const walk = (prefix, o) => {
+    for (const [k, v] of Object.entries(o)) {
+      const key = prefix ? `${prefix} / ${k}` : k;
+      if (v && typeof v === "object" && !Array.isArray(v)) walk(key, v);
+      else flat.push(`${key}: ${Array.isArray(v) ? v.join("; ") : (v ?? "")}`);
+    }
+  };
+  if (typeof specs === "object") walk("", specs);
+  $("f-specs").value = flat.join("\n");
+  $("f-description").value = obj.description ?? "";
+}
+
+function setInputMode(mode) {
+  if (mode === inputMode) return;
+  if (mode === "json") {
+    $("f-json").value = JSON.stringify(formToObject(), null, 2);
+  } else {
+    try { objectToForm(JSON.parse($("f-json").value)); }
+    catch (e) { showInputMsg("err", "Не удалось перенести JSON в форму: " + e.message); return; }
+  }
+  inputMode = mode;
+  document.querySelectorAll("[data-input-tab]").forEach((b) => b.classList.toggle("active", b.dataset.inputTab === mode));
+  $("input-form").classList.toggle("hidden", mode !== "form");
+  $("input-json").classList.toggle("hidden", mode !== "json");
+}
+
+function currentBody() {
+  return inputMode === "json" ? $("f-json").value : JSON.stringify(formToObject());
+}
+
+function showInputMsg(kind, text, details = []) {
+  const list = details.length ? "<ul>" + details.map((d) => `<li>${esc(d)}</li>`).join("") + "</ul>" : "";
+  $("input-msg").innerHTML = text ? `<div class="msg ${kind}">${esc(text)}${list}</div>` : "";
+}
+
+async function loadExamples() {
+  try {
+    const res = await fetch("/api/examples");
+    const items = await res.json();
+    const groups = {};
+    for (const it of items) (groups[it.group] ??= []).push(it);
+    for (const [group, list] of Object.entries(groups)) {
+      const og = document.createElement("optgroup");
+      og.label = group;
+      for (const it of list) {
+        const opt = document.createElement("option");
+        opt.value = it.id; opt.textContent = it.id.split("/")[1]; opt.dataset.text = it.text;
+        og.appendChild(opt);
+      }
+      $("example").appendChild(og);
+    }
+  } catch { /* примеры необязательны */ }
+}
+
+$("example").addEventListener("change", (e) => {
+  const opt = e.target.selectedOptions[0];
+  if (!opt || !opt.dataset.text) return;
+  showInputMsg("", "");
+  try {
+    const obj = JSON.parse(opt.dataset.text);
+    if (inputMode === "json") $("f-json").value = JSON.stringify(obj, null, 2);
+    else objectToForm(obj);
+  } catch {
+    // битый JSON показываем как есть, чтобы проверить обработку ошибок
+    setInputMode("json");
+    $("f-json").value = opt.dataset.text;
+  }
+});
+
+document.querySelectorAll("[data-input-tab]").forEach((b) => b.addEventListener("click", () => setInputMode(b.dataset.inputTab)));
+
+// ---------- Запросы ----------
+async function post(url, body) {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body });
+  let data = {};
+  try { data = await res.json(); } catch { data = { error: `Сервер вернул ${res.status}` }; }
+  return { ok: res.ok, data };
+}
+
+$("btn-validate").addEventListener("click", async () => {
+  const { ok, data } = await post("/api/validate", currentBody());
+  if (!ok) return showInputMsg("err", data.error, data.details);
+  const details = [
+    `Категория: ${data.category}`,
+    `Характеристик: ${data.specs_count}, описание: ${data.description_length} симв.`,
+    data.manufacturer ? `Производитель: ${data.manufacturer}` : "Производитель: данных нет",
+  ];
+  if (data.missing_expected.length) details.push("Нет ожидаемых для категории полей: " + data.missing_expected.join(", "));
+  details.push(...data.notes);
+  showInputMsg("info", "Данные можно отправлять в генерацию.", details);
+});
+
+$("btn-generate").addEventListener("click", async () => {
+  const btn = $("btn-generate");
+  btn.disabled = true; btn.textContent = "Генерирую… обычно 15–60 с";
+  showInputMsg("", "");
+  try {
+    const { ok, data } = await post("/api/generate", currentBody());
+    if (!ok) return showInputMsg("err", data.error, data.details);
+    renderResult(data.card, data.markdown);
+  } catch (e) {
+    showInputMsg("err", "Сервер недоступен: " + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = "Сгенерировать";
+  }
+});
+
+// ---------- Результат ----------
+function section(title, bodyHtml, copyText, meter = "") {
+  const id = "c" + Object.keys(copyStore).length;
+  copyStore[id] = copyText;
+  return `<div class="section"><div class="section-head"><h3>${esc(title)} ${meter}</h3>` +
+    (copyText ? `<button class="copy" data-copy-id="${id}">Копировать</button>` : "") +
+    `</div>${bodyHtml}</div>`;
+}
+const bullets = (items) => items.length ? `<ul class="plain">${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>` : `<p class="foot">—</p>`;
+
+function renderResult(card, markdown) {
+  for (const k of Object.keys(copyStore)) delete copyStore[k];
+  $("result-empty").classList.add("hidden");
+  $("result").classList.remove("hidden");
+  const badge = $("status-badge");
+  badge.className = "badge " + card.status;
+  badge.textContent = card.status === "ok" ? "Готово к вычитке" : "Требует внимания";
+  $("meta").textContent = `${card.category} · ${card.meta.model} · попыток: ${card.meta.attempts} · ${card.meta.duration_sec} с`;
+
+  const tLen = card.seo_title_length, dLen = card.seo_description_length;
+  const tMeter = `<span class="meter ${tLen > 70 ? "bad" : ""}">${tLen}/70</span>`;
+  const dMeter = `<span class="meter ${dLen < 800 || dLen > 1200 ? "bad" : ""}">${dLen} симв., норма 800–1200</span>`;
+
+  const rows = card.characteristics.map((c) =>
+    `<tr><td>${esc(c.name)}</td><td class="${c.source === "missing" ? "missing" : ""}"` +
+    (c.quote ? ` title="Цитата: ${esc(c.quote)}"` : "") + `>${esc(c.value)}${c.source === "description" ? " <sup>¹</sup>" : ""}</td></tr>`).join("");
+  const charsText = card.characteristics.map((c) => `${c.name}: ${c.value}`).join("\n");
+  const hasDesc = card.characteristics.some((c) => c.source === "description");
+
+  const com = card.commercial;
+  const comText = ["Кому подходит:", ...com.target_audience.map((x) => "- " + x), "", "Какие задачи решает:",
+    ...com.tasks.map((x) => "- " + x), "", "Аргументы для клиента:", ...com.selling_points.map((x) => "- " + x)].join("\n");
+
+  let html = "";
+  html += section("SEO-заголовок", `<p class="seo-text">${esc(card.seo_title)}</p>`, card.seo_title, tMeter);
+  html += section("SEO-описание", `<p class="seo-text">${esc(card.seo_description)}</p>`, card.seo_description, dMeter);
+  html += section("Характеристики", `<table>${rows}</table>` +
+    (hasDesc ? `<p class="foot">¹ Взято из текстового описания, цитата сверена автоматически (наведите курсор).</p>` : ""), charsText);
+  html += section("Поисковые запросы", bullets(card.search_queries), card.search_queries.join("\n"));
+  html += section("Для менеджера",
+    `<p><b>Кому подходит</b></p>${bullets(com.target_audience)}<p><b>Какие задачи решает</b></p>${bullets(com.tasks)}` +
+    `<p><b>Аргументы для клиента</b></p>${bullets(com.selling_points)}`, comText);
+  if (card.missing_fields.length || card.clarification_questions.length) {
+    html += section("Требует уточнения",
+      (card.missing_fields.length ? `<p><b>Нет данных:</b> ${esc(card.missing_fields.join(", "))}</p>` : "") +
+      (card.clarification_questions.length ? `<p><b>Вопросы поставщику</b></p>${bullets(card.clarification_questions)}` : ""),
+      [...card.missing_fields.map((m) => "Нет данных: " + m), ...card.clarification_questions].join("\n"));
+  }
+  if (card.warnings.length) {
+    html += section("Предупреждения", `<ul class="plain warn-list">${card.warnings.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>`, "");
+  }
+  $("out-card").innerHTML = html;
+  $("md-pre").textContent = markdown;
+  $("json-pre").textContent = JSON.stringify(card, null, 2);
+  setOutTab("card");
+}
+
+function setOutTab(tab) {
+  document.querySelectorAll("[data-out-tab]").forEach((b) => b.classList.toggle("active", b.dataset.outTab === tab));
+  for (const t of ["card", "md", "json"]) $("out-" + t).classList.toggle("hidden", t !== tab);
+}
+document.querySelectorAll("[data-out-tab]").forEach((b) => b.addEventListener("click", () => setOutTab(b.dataset.outTab)));
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".copy");
+  if (!btn) return;
+  const text = btn.dataset.copyId ? copyStore[btn.dataset.copyId] : $(btn.dataset.copyTarget).textContent;
+  try { await navigator.clipboard.writeText(text); btn.textContent = "Скопировано"; }
+  catch { btn.textContent = "Не удалось"; }
+  setTimeout(() => (btn.textContent = "Копировать"), 1500);
+});
+
+loadExamples();
+</script>
+</body>
+</html>
