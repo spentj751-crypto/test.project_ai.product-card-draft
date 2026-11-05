@@ -1,5 +1,3 @@
-"""Настройки из переменных окружения (.env подхватывается автоматически)."""
-
 from __future__ import annotations
 
 import os

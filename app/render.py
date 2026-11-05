@@ -1,5 +1,3 @@
-"""Markdown-представление карточки для контент-менеджера."""
-
 from __future__ import annotations
 
 from .guards import DESCRIPTION_MAX, DESCRIPTION_MIN, TITLE_MAX

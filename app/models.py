@@ -1,5 +1,3 @@
-"""Модели данных: вход, ответ LLM и итоговая карточка."""
-
 from __future__ import annotations
 
 from typing import Literal
@@ -9,7 +7,6 @@ from pydantic import BaseModel, Field
 NO_DATA = "данных нет"
 
 
-# ---------- Вход ----------
 
 class ProductInput(BaseModel):
     """Нормализованные данные о товаре (после разбора сырого JSON)."""
@@ -20,7 +17,6 @@ class ProductInput(BaseModel):
     description: str = ""
 
 
-# ---------- Ответ модели ----------
 
 class CommercialBlock(BaseModel):
     target_audience: list[str] = Field(description="Кому подходит прибор")
@@ -46,7 +42,6 @@ class LLMDraft(BaseModel):
     clarification_questions: list[str] = Field(default_factory=list)
 
 
-# ---------- Результат ----------
 
 Source = Literal["input", "specs", "description", "missing"]
 

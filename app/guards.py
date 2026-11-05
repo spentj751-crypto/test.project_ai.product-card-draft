@@ -1,14 +1,3 @@
-"""Проверки ответа модели кодом — второй рубеж против выдуманных данных.
-
-1. Числа: каждое число в сгенерированных текстах должно встречаться
-   во входных данных (после нормализации «1,6» → «1.6», «60 000» → «60000»).
-2. «Опасные» термины: Госреестр, поверка, ГОСТ, сертификаты, материалы и т.п.
-   допустимы, только если такие слова есть во входных данных.
-3. Формат: длина заголовка и описания, количество запросов.
-4. Характеристики из описания принимаются, только если модель привела
-   дословную цитату и значение в ней действительно есть.
-"""
-
 from __future__ import annotations
 
 import math
@@ -36,8 +25,6 @@ class Issue:
     def __str__(self) -> str:
         return f"{self.field}: {self.message}"
 
-
-# ---------- Числа ----------
 
 _NUM_RE = re.compile(r"\d+(?:[.,]\d+)?")
 _THOUSANDS_RE = re.compile(r"(?<=\d)[   ](?=\d{3}(?!\d))")
@@ -73,9 +60,6 @@ def find_unsupported_numbers(text: str, allowed: set[str]) -> list[tuple[str, st
     return found
 
 
-# ---------- Термины ----------
-
-# Тема → основы слов. Тема разрешена, если хотя бы одна её основа есть во входных данных.
 SENSITIVE_TERMS: dict[str, tuple[str, ...]] = {
     "Госреестр СИ": ("госреестр", "реестр си", "реестре си"),
     "поверка": ("поверк", "поверен", "поверочн"),
@@ -114,10 +98,6 @@ def input_corpus(product: ProductInput) -> str:
         parts.append(f"{key}: {value}")
     return "\n".join(parts)
 
-
-# ---------- Длина текстов ----------
-# Модели плохо считают символы, но хорошо — предложения и слова,
-# поэтому замечание о длине формулируется через них.
 
 DESCRIPTION_TARGET = 1000
 _SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[«\"(]?[А-ЯЁA-Z0-9])")
@@ -189,8 +169,6 @@ def shorten_title(title: str) -> str | None:
     return t if len(t) >= 15 else None
 
 
-# ---------- Проверка черновика ----------
-
 def _draft_text_fields(draft: LLMDraft) -> list[tuple[str, str]]:
     fields = [("seo_title", draft.seo_title), ("seo_description", draft.seo_description)]
     fields += [(f"search_queries[{i}]", q) for i, q in enumerate(draft.search_queries)]
@@ -208,7 +186,6 @@ def check_draft(draft: LLMDraft, product: ProductInput) -> list[Issue]:
     allowed_numbers = extract_numbers(corpus)
     corpus_norm = _norm_text(corpus)
 
-    # Формат
     title_len = len(draft.seo_title.strip())
     if title_len == 0:
         issues.append(Issue("seo_title", "пустой заголовок"))
@@ -232,7 +209,6 @@ def check_draft(draft: LLMDraft, product: ProductInput) -> list[Issue]:
         if not [i for i in items if i.strip()]:
             issues.append(Issue(name, "пустой список"))
 
-    # Факты
     for field_name, text in _draft_text_fields(draft):
         for raw, context in find_unsupported_numbers(text, allowed_numbers):
             issues.append(Issue(
@@ -261,8 +237,6 @@ def check_draft(draft: LLMDraft, product: ProductInput) -> list[Issue]:
 
     return issues
 
-
-# ---------- Характеристики из описания ----------
 
 _DASHES = str.maketrans({"–": "-", "—": "-", "−": "-", "«": '"', "»": '"', "“": '"', "”": '"', "…": "..."})
 

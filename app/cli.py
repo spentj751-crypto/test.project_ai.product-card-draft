@@ -1,11 +1,3 @@
-"""Командная строка.
-
-Примеры:
-    python -m app.cli examples/input/vit-1.json                 # Markdown в консоль
-    python -m app.cli examples/input/*.json -o examples/output  # JSON + Markdown в папку
-    python -m app.cli examples/input/vit-1.json --dry-run       # без LLM: проверка входа и промпт
-"""
-
 from __future__ import annotations
 
 import argparse

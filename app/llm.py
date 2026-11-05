@@ -1,6 +1,3 @@
-"""Клиент LLM. Любой OpenAI-совместимый API: по умолчанию DeepSeek,
-но через LLM_BASE_URL/LLM_MODEL подключаются OpenAI, OpenRouter, Ollama и др."""
-
 from __future__ import annotations
 
 import logging
